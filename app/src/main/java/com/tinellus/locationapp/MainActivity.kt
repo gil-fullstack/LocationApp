@@ -12,17 +12,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tinellus.locationapp.ui.theme.LocationAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -30,15 +29,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val viewMode: LocationViewMode = viewModel()
             LocationAppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    MyApp(viewMode)
                 }
             }
         }
     }
+}
+@Composable
+fun MyApp(viewMode: LocationViewMode){
+    val context = LocalContext.current
+    val locationUtils = LocationUtils(context)
+    LocationDisplay(locationUtils = locationUtils, context = context )
 }
 
 @Composable
@@ -52,7 +59,9 @@ fun LocationDisplay(
                 && permissions[Manifest.permission.ACCESS_FINE_LOCATION] === true
             ) {
 
-            }else{
+
+            }
+            else{
                 val rationaleRequired = ActivityCompat.shouldShowRequestPermissionRationale(
                     context as MainActivity,
                     Manifest.permission.ACCESS_COARSE_LOCATION
@@ -61,8 +70,11 @@ fun LocationDisplay(
                     Manifest.permission.ACCESS_FINE_LOCATION
                 )
                 if(rationaleRequired){
-                    Toast.makeText(context, "Location Permission is required",
-                        Toast.LENGTH_LONG)
+                    Toast.makeText(context, "Location Permission is required for this feature work",
+                        Toast.LENGTH_LONG).show()
+                }else{
+                    Toast.makeText(context, "Location Permission is required, Please enable it in the Android Setting",
+                        Toast.LENGTH_LONG).show()
                 }
             }
         })
