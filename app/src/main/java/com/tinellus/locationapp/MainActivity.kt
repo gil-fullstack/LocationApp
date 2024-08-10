@@ -29,36 +29,39 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val viewMode: LocationViewMode = viewModel()
+            val viewModel: LocationViewMode = viewModel()
             LocationAppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MyApp(viewMode)
+                    MyApp(viewModel)
                 }
             }
         }
     }
 }
 @Composable
-fun MyApp(viewMode: LocationViewMode){
+fun MyApp(viewModel: LocationViewMode){
     val context = LocalContext.current
     val locationUtils = LocationUtils(context)
-    LocationDisplay(locationUtils = locationUtils, context = context )
+    LocationDisplay(locationUtils = locationUtils, viewModel, context = context )
 }
 
 @Composable
 fun LocationDisplay(
-    locationUtils: LocationUtils, context: Context
+    locationUtils: LocationUtils,
+    viewModel: LocationViewMode,
+    context: Context
 ) {
+    val location = viewModel.location.value
     val requetPermissionLancher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { permissions ->
             if (permissions[Manifest.permission.ACCESS_COARSE_LOCATION] === true
                 && permissions[Manifest.permission.ACCESS_FINE_LOCATION] === true
             ) {
-
+                locationUtils.requestLocationUpdates(viewModel = viewModel)
 
             }
             else{
@@ -85,11 +88,15 @@ fun LocationDisplay(
         verticalArrangement = Arrangement.Center
     )
     {
-        Text(text = "LOCATION")
+        if(location != null){
+            Text(text = "ADDRESS LOCATION: ${location.latitude} ${location.longitude}")
+       }else {
+            Text(text = "LOCATION")
+        }
 
         Button(onClick = {
             if (locationUtils.hasLocationPermission(context)) {
-
+                locationUtils.requestLocationUpdates(viewModel)
             } else {
                 requetPermissionLancher.launch(
                     arrayOf(
